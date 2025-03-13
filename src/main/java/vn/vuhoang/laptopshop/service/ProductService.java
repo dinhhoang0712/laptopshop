@@ -12,6 +12,8 @@ import vn.vuhoang.laptopshop.repository.*;
 @Service
 public class ProductService {
 
+    private final OrderService orderService;
+
     private final ProductRepository productRepository;
     private final CartRepository cartRepository;
     private final CartDetailRepository cartDetailRepository;
@@ -25,13 +27,14 @@ public class ProductService {
             CartDetailRepository cartDetailRepository,
             UserRepository userRepository,
             OrderRepository orderRepository,
-            OrderDetailRepository orderDetailRepository) {
+            OrderDetailRepository orderDetailRepository, OrderService orderService) {
         this.productRepository = productRepository;
         this.cartRepository = cartRepository;
         this.cartDetailRepository = cartDetailRepository;
         this.userRepository = userRepository;
         this.orderRepository = orderRepository;
         this.orderDetailRepository = orderDetailRepository;
+        this.orderService = orderService;
     }
 
     public void createProduct(Product product) {
@@ -142,14 +145,14 @@ public class ProductService {
             od.setQuantity(cartDetail.getQuantity());
             od.setPrice(cartDetail.getPrice());
             orderDetailRepository.save(od);
+            orderService.authenticationProvider();
         }
 
         for (CartDetail cartDetail : cartDetails) {
             cartDetailRepository.deleteById(cartDetail.getId());
         }
 
-        cart.setSum(0);
-        cartRepository.save(cart);
+        cartRepository.deleteById(cart.getId());
         session.setAttribute("sum", 0);
     }
 
