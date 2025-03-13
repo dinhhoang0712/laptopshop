@@ -145,7 +145,6 @@ public class ProductService {
             od.setQuantity(cartDetail.getQuantity());
             od.setPrice(cartDetail.getPrice());
             orderDetailRepository.save(od);
-            orderService.authenticationProvider();
         }
 
         for (CartDetail cartDetail : cartDetails) {
