@@ -12,7 +12,7 @@ import java.util.List;
 
 @Service
 public class OrderService {
-    private  final OrderRepository orderRepository;
+    private final OrderRepository orderRepository;
     private final OrderDetailRepository orderDetailRepository;
 
     public OrderService(OrderRepository orderRepository, OrderDetailRepository orderDetailRepository) {
@@ -27,5 +27,21 @@ public class OrderService {
 
     public List<Order> getAllOrder() {
         return orderRepository.findAll();
+    }
+
+    public Order getOrder(long id) {
+        return orderRepository.findById(id).orElse(null);
+    }
+
+    public void savaOrder(Order order) {
+        orderRepository.save(order);
+    }
+
+    public void deleteOrder(long id) {
+        orderRepository.deleteById(id);
+    }
+
+    public List<Order> getAllOrderUser(User user) {
+        return orderRepository.findAllByUser(user);
     }
 }

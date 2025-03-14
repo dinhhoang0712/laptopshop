@@ -8,9 +8,12 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import vn.vuhoang.laptopshop.domain.CartDetail;
+import vn.vuhoang.laptopshop.domain.Order;
 import vn.vuhoang.laptopshop.domain.User;
+import vn.vuhoang.laptopshop.repository.ProductRepository;
 import vn.vuhoang.laptopshop.domain.Cart;
 import vn.vuhoang.laptopshop.service.CartDetailService;
+import vn.vuhoang.laptopshop.service.OrderService;
 import vn.vuhoang.laptopshop.service.ProductService;
 import vn.vuhoang.laptopshop.service.UserService;
 
@@ -20,16 +23,20 @@ import java.util.List;
 @Controller
 public class ItemController {
 
+    private final ProductRepository productRepository;
+
     private final CartDetailService cartDetailService;
     private final ProductService productService;
     private final UserService userService;
+    private final OrderService orderService;
 
     public ItemController(ProductService productService, UserService userService,
-            CartDetailService cartDetailService) {
+            CartDetailService cartDetailService, OrderService orderService, ProductRepository productRepository) {
         this.productService = productService;
         this.userService = userService;
         this.cartDetailService = cartDetailService;
-
+        this.orderService = orderService;
+        this.productRepository = productRepository;
     }
 
     @GetMapping("/product/{id}")
@@ -80,10 +87,32 @@ public class ItemController {
         return "client/cart/place-order";
     }
 
+    @GetMapping("order-history")
+    public String getOrderHistoryPage(Model model, HttpServletRequest http) {
+        User user = new User();
+        HttpSession session = http.getSession(false);
+        user.setId((long) session.getAttribute("id"));
+
+        List<Order> orders = orderService.getAllOrderUser(user);
+        model.addAttribute("orders", orders);
+        return "client/cart/order-history";
+    }
+
+    @PostMapping("/add-product-form-view-detail")
+    public String postAddProductFromViewDetail(@RequestParam("id") long id, @RequestParam("quantity") int quantity,
+            HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+
+        String email = (String) session.getAttribute("email");
+        productService.addProductToCart(email, id, session, quantity);
+
+        return "redirect:/product/" + id;
+    }
+
     @PostMapping("/add-product-to-cart/{id}")
     public String postAddProductToCart(@PathVariable("id") long id, HttpServletRequest request) {
         HttpSession session = request.getSession(false);
-        productService.addProductToCart((String) session.getAttribute("email"), id, session);
+        productService.addProductToCart((String) session.getAttribute("email"), id, session, 1);
 
         return "redirect:/";
     }

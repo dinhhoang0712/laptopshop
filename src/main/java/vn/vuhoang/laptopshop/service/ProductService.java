@@ -53,7 +53,7 @@ public class ProductService {
         productRepository.deleteById(id);
     }
 
-    public void addProductToCart(String email, long idProduct, HttpSession session) {
+    public void addProductToCart(String email, long idProduct, HttpSession session, long quantity) {
         User user = userRepository.findByEmail(email);
 
         if (user != null) {
@@ -72,7 +72,7 @@ public class ProductService {
                 cartDetail = new CartDetail();
                 cartDetail.setPrice(product.getPrice());
                 cartDetail.setProduct(product);
-                cartDetail.setQuantity(1);
+                cartDetail.setQuantity((int) quantity);
                 cartDetail.setCart(cart);
                 cartDetailRepository.save(cartDetail);
 
@@ -81,7 +81,7 @@ public class ProductService {
                 cartRepository.save(cart);
                 session.setAttribute("sum", sum);
             } else {
-                cartDetail.setQuantity(cartDetail.getQuantity() + 1);
+                cartDetail.setQuantity(cartDetail.getQuantity() + (int) quantity);
                 cartDetailRepository.save(cartDetail);
             }
 
@@ -105,7 +105,7 @@ public class ProductService {
                 cartRepository.save(cart);
                 session.setAttribute("sum", sum);
             } else {
-                cartRepository.deleteById(cart.getId());
+                cartRepository.deleteCartById(cart.getId());
                 session.setAttribute("sum", 0);
             }
 
@@ -151,8 +151,19 @@ public class ProductService {
             cartDetailRepository.deleteById(cartDetail.getId());
         }
 
-        cartRepository.deleteById(cart.getId());
+        cartRepository.deleteCartById(cart.getId());
         session.setAttribute("sum", 0);
     }
 
+    public long countUser() {
+        return userRepository.count();
+    }
+
+    public long countProduct() {
+        return productRepository.count();
+    }
+
+    public long countOrder() {
+        return orderRepository.count();
+    }
 }
