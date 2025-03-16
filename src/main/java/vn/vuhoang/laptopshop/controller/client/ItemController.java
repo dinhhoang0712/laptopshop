@@ -1,6 +1,9 @@
 package vn.vuhoang.laptopshop.controller.client;
 
-import org.springframework.session.security.web.authentication.SpringSessionRememberMeServices;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -9,13 +12,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import vn.vuhoang.laptopshop.domain.CartDetail;
 import vn.vuhoang.laptopshop.domain.Order;
+import vn.vuhoang.laptopshop.domain.Product;
+import vn.vuhoang.laptopshop.domain.Product_;
 import vn.vuhoang.laptopshop.domain.User;
-import vn.vuhoang.laptopshop.repository.ProductRepository;
+import vn.vuhoang.laptopshop.domain.dto.ProductCriteriaDTO;
 import vn.vuhoang.laptopshop.domain.Cart;
-import vn.vuhoang.laptopshop.service.CartDetailService;
 import vn.vuhoang.laptopshop.service.OrderService;
 import vn.vuhoang.laptopshop.service.ProductService;
-import vn.vuhoang.laptopshop.service.UserService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,26 +26,54 @@ import java.util.List;
 @Controller
 public class ItemController {
 
-    private final ProductRepository productRepository;
-
-    private final CartDetailService cartDetailService;
     private final ProductService productService;
-    private final UserService userService;
     private final OrderService orderService;
 
-    public ItemController(ProductService productService, UserService userService,
-            CartDetailService cartDetailService, OrderService orderService, ProductRepository productRepository) {
+    public ItemController(ProductService productService, OrderService orderService) {
         this.productService = productService;
-        this.userService = userService;
-        this.cartDetailService = cartDetailService;
         this.orderService = orderService;
-        this.productRepository = productRepository;
     }
 
     @GetMapping("/product/{id}")
     public String showProductDetail(@PathVariable("id") long id, Model model) {
         model.addAttribute("product", productService.findId(id));
         return "client/product/detail";
+    }
+
+    @GetMapping("/products")
+    public String showAllProduct(Model model, ProductCriteriaDTO productCriteriaDTO, HttpServletRequest request) {
+        int newPage = 1;
+        try {
+            if (productCriteriaDTO.getPage().isPresent()) {
+                newPage = Integer.parseInt(productCriteriaDTO.getPage().get());
+            }
+        } catch (Exception e) {
+            // TODO: handle exception
+        }
+
+        Pageable pageable = PageRequest.of(newPage - 1, 6);
+        if (productCriteriaDTO.getSort() != null && productCriteriaDTO.getSort().isPresent()) {
+            String sort = productCriteriaDTO.getSort().get();
+            if (sort.equals("gia-tang-dan"))
+                pageable = PageRequest.of(newPage - 1, 6, Sort.by(Product_.PRICE).ascending());
+            else
+                pageable = PageRequest.of(newPage - 1, 6, Sort.by(Product_.PRICE).descending());
+        }
+
+        Page<Product> pages = productService.getAllProductWith(pageable, productCriteriaDTO);
+
+        List<Product> products = pages.getContent().size() > 0 ? pages.getContent() : new ArrayList<>();
+
+        String qs = request.getQueryString();
+        if (qs != null && !qs.isBlank()) {
+            qs = qs.replace("page=" + newPage, "");
+        }
+        model.addAttribute("products", products);
+        model.addAttribute("curPage", newPage);
+        model.addAttribute("totalPage", pages.getTotalPages());
+        model.addAttribute("queryString", qs);
+
+        return "client/product/show";
     }
 
     @GetMapping("/cart")

@@ -1,5 +1,11 @@
 package vn.vuhoang.laptopshop.controller.admin;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,9 +26,21 @@ public class OrderController {
     }
 
     @GetMapping("/admin/order")
-    public String getDashboard(Model model) {
-
-        model.addAttribute("orders", orderService.getAllOrder());
+    public String getDashboard(Model model, @RequestParam(value = "page") Optional<String> page) {
+        int newPage = 1;
+        try {
+            if (page.isPresent()) {
+                newPage = Integer.parseInt(page.get());
+            }
+        } catch (Exception e) {
+            // TODO: handle exception
+        }
+        Pageable pageable = PageRequest.of(newPage - 1, 2);
+        Page<Order> pages = orderService.getAllOrder(pageable);
+        List<Order> orders = pages.getContent();
+        model.addAttribute("orders", orders);
+        model.addAttribute("curPage", newPage);
+        model.addAttribute("totalPage", pages.getTotalPages());
         return "admin/order/show";
     }
 

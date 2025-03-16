@@ -64,6 +64,33 @@
 
                                             </tbody>
                                         </table>
+
+                                        <nav aria-label="Page navigation example">
+                                            <ul class="pagination justify-content-center">
+                                                <!-- Nút Previous -->
+                                                <li class="page-item ${curPage == 1 ? 'disabled' : ''}">
+                                                    <a class="page-link" href="/admin/user?page=${curPage - 1}"
+                                                        aria-label="Previous">
+                                                        <span aria-hidden="true">&laquo;</span>
+                                                    </a>
+                                                </li>
+
+                                                <!-- Hiển thị số trang -->
+                                                <c:forEach begin="1" end="${totalPage}" var="i">
+                                                    <li class="page-item ${curPage == i ? 'active' : ''}">
+                                                        <a class="page-link" href="/admin/user?page=${i}">${i}</a>
+                                                    </li>
+                                                </c:forEach>
+
+                                                <!-- Nút Next -->
+                                                <li class="page-item ${curPage == totalPage ? 'disabled' : ''}">
+                                                    <a class="page-link" href="/admin/user?page=${curPage + 1}"
+                                                        aria-label="Next">
+                                                        <span aria-hidden="true">&raquo;</span>
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </nav>
                                     </div>
                                 </div>
                             </div>

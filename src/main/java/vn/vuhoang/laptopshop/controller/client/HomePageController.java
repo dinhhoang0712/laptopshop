@@ -1,5 +1,9 @@
 package vn.vuhoang.laptopshop.controller.client;
 
+import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -9,6 +13,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import jakarta.validation.Valid;
+import vn.vuhoang.laptopshop.domain.Product;
 import vn.vuhoang.laptopshop.domain.User;
 import vn.vuhoang.laptopshop.domain.dto.RegisterDTO;
 import vn.vuhoang.laptopshop.service.ProductService;
@@ -29,7 +34,11 @@ public class HomePageController {
 
     @GetMapping("/")
     public String getHomePage(Model model) {
-        model.addAttribute("products", productService.getAllProduct());
+        PageRequest pageable = PageRequest.of(0, 10);
+
+        Page<Product> pages = productService.getAllProduct(pageable);
+        List<Product> products = pages.getContent();
+        model.addAttribute("products", products);
         return "client/homepage/show";
     }
 

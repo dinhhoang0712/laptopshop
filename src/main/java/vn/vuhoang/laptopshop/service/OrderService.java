@@ -1,10 +1,11 @@
 package vn.vuhoang.laptopshop.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import vn.vuhoang.laptopshop.domain.Order;
 import vn.vuhoang.laptopshop.domain.OrderDetail;
 import vn.vuhoang.laptopshop.domain.User;
-import vn.vuhoang.laptopshop.repository.OrderDetailRepository;
 import vn.vuhoang.laptopshop.repository.OrderRepository;
 
 import java.util.ArrayList;
@@ -13,11 +14,9 @@ import java.util.List;
 @Service
 public class OrderService {
     private final OrderRepository orderRepository;
-    private final OrderDetailRepository orderDetailRepository;
 
-    public OrderService(OrderRepository orderRepository, OrderDetailRepository orderDetailRepository) {
+    public OrderService(OrderRepository orderRepository) {
         this.orderRepository = orderRepository;
-        this.orderDetailRepository = orderDetailRepository;
     }
 
     public List<OrderDetail> getAllOrderDetail(User user) {
@@ -25,8 +24,8 @@ public class OrderService {
         return order == null ? new ArrayList<>() : order.getOrderDetail();
     }
 
-    public List<Order> getAllOrder() {
-        return orderRepository.findAll();
+    public Page<Order> getAllOrder(Pageable pageable) {
+        return orderRepository.findAll(pageable);
     }
 
     public Order getOrder(long id) {

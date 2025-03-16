@@ -3,16 +3,20 @@ package vn.vuhoang.laptopshop.service;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.stereotype.Service;
 
 import jakarta.servlet.http.HttpSession;
 import vn.vuhoang.laptopshop.domain.*;
+import vn.vuhoang.laptopshop.domain.dto.ProductCriteriaDTO;
 import vn.vuhoang.laptopshop.repository.*;
+import vn.vuhoang.laptopshop.service.specification.ProductSpec;
 
 @Service
 public class ProductService {
-
-    private final OrderService orderService;
 
     private final ProductRepository productRepository;
     private final CartRepository cartRepository;
@@ -27,22 +31,77 @@ public class ProductService {
             CartDetailRepository cartDetailRepository,
             UserRepository userRepository,
             OrderRepository orderRepository,
-            OrderDetailRepository orderDetailRepository, OrderService orderService) {
+            OrderDetailRepository orderDetailRepository) {
         this.productRepository = productRepository;
         this.cartRepository = cartRepository;
         this.cartDetailRepository = cartDetailRepository;
         this.userRepository = userRepository;
         this.orderRepository = orderRepository;
         this.orderDetailRepository = orderDetailRepository;
-        this.orderService = orderService;
     }
 
     public void createProduct(Product product) {
         productRepository.save(product);
     }
 
-    public List<Product> getAllProduct() {
-        return productRepository.findAll();
+    public Page<Product> getAllProduct(Pageable page) {
+        return productRepository.findAll(page);
+    }
+
+    public Page<Product> getAllProductWith(Pageable page, ProductCriteriaDTO productCriteriaDTO) {
+        if (productCriteriaDTO.getFactory() == null && productCriteriaDTO.getPrice() == null
+                && productCriteriaDTO.getTarget() == null)
+            return productRepository.findAll(page);
+        Specification<Product> comSpec = Specification.where(null);
+
+        if (productCriteriaDTO.getFactory() != null && productCriteriaDTO.getFactory().isPresent()) {
+            Specification<Product> curSpec = ProductSpec.findInFactory(productCriteriaDTO.getFactory().get());
+            comSpec = comSpec.and(curSpec);
+        }
+
+        if (productCriteriaDTO.getTarget() != null && productCriteriaDTO.getTarget().isPresent()) {
+            Specification<Product> curSpec = ProductSpec.findInTarget(productCriteriaDTO.getTarget().get());
+            comSpec = comSpec.and(curSpec);
+        }
+
+        if (productCriteriaDTO.getPrice() != null && productCriteriaDTO.getPrice().isPresent()) {
+            Specification<Product> curSpec = priceSpec(productCriteriaDTO.getPrice().get());
+            comSpec = comSpec.and(curSpec);
+        }
+        return productRepository.findAll(comSpec, page);
+    }
+
+    private Specification<Product> priceSpec(List<String> list) {
+        Specification<Product> comSpec = Specification.where(null);
+        for (String p : list) {
+            double min = 0, max = 0;
+            switch (p) {
+                case "duoi-10-trieu":
+                    min = 0;
+                    max = 10000000;
+                    break;
+                case "tu-10-15-trieu":
+                    min = 10000000;
+                    max = 15000000;
+                    break;
+                case "tu-15-20-trieu":
+                    min = 15000000;
+                    max = 20000000;
+                    break;
+                case "tren-20-trieu":
+                    min = 20000000;
+                    max = 200000000;
+                    break;
+            }
+
+            if (min != 0 && max != 0) {
+                Specification<Product> curSpec = ProductSpec.findPrice(min, max);
+                comSpec = comSpec.or(curSpec);
+            }
+        }
+
+        return comSpec;
+
     }
 
     public Product findId(long id) {
