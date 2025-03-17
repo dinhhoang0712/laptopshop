@@ -1,4 +1,4 @@
-package vn.vuhoang.laptopshop.service;
+package vn.vuhoang.laptopshop.config;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -18,6 +18,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import vn.vuhoang.laptopshop.domain.User;
+import vn.vuhoang.laptopshop.service.UserService;
 
 public class CustomSuccessHandler implements AuthenticationSuccessHandler {
 

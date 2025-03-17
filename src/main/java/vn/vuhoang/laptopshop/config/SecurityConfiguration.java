@@ -14,7 +14,6 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.session.security.web.authentication.SpringSessionRememberMeServices;
 
 import jakarta.servlet.DispatcherType;
-import vn.vuhoang.laptopshop.service.CustomSuccessHandler;
 import vn.vuhoang.laptopshop.service.CustomUserDetailsService;
 import vn.vuhoang.laptopshop.service.UserService;
 
@@ -61,7 +60,7 @@ public class SecurityConfiguration {
         http.authorizeHttpRequests(authorize -> authorize
                 .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.INCLUDE).permitAll()
                 .requestMatchers("/", "/login", "/product/**", "/client/**", "/register", "/css/**", "/js/**",
-                        "/images/**")
+                        "/images/**", "/products/**")
                 .permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated())
